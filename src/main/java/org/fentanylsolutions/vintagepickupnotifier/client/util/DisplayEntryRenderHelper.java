@@ -252,13 +252,20 @@ public class DisplayEntryRenderHelper {
         int color = MathHelper.clamp_int((int) (alpha * 255.0F), 0, 255) << 24 | 0xFFFFFF;
 
         AngelicaFontBatcher.flush(fontRenderer);
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
-        GL11.glScalef(scale, scale, 1.0F);
-        int textX = (int) ((posX + 17) / scale) - fontRenderer.getStringWidth(text);
-        int textY = (int) ((posY + fontRenderer.FONT_HEIGHT * 2) / scale) - fontRenderer.FONT_HEIGHT;
-        fontRenderer.drawStringWithShadow(text, textX, textY, color);
-        AngelicaFontBatcher.flush(fontRenderer);
-        GL11.glPopMatrix();
+        try {
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glDepthMask(false);
+            GL11.glScalef(scale, scale, 1.0F);
+            int textX = (int) ((posX + 17) / scale) - fontRenderer.getStringWidth(text);
+            int textY = (int) ((posY + fontRenderer.FONT_HEIGHT * 2) / scale) - fontRenderer.FONT_HEIGHT;
+            fontRenderer.drawStringWithShadow(text, textX, textY, color);
+            AngelicaFontBatcher.flush(fontRenderer);
+        } finally {
+            GL11.glPopMatrix();
+            GL11.glPopAttrib();
+        }
     }
 
     private static String shortenValue(int value) {
