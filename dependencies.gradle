@@ -34,10 +34,9 @@
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
 dependencies {
-    // Impl
-    implementation("org.fentanylsolutions.fentlib:FentLib:0.0.49:dev")
-
     // Pure runtime
+    // Development QoL only; published mods do not require AngelLib.
+    runtimeOnlyNonPublishable("industries.angelic.angellib:AngelLib:1.0.0:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:Hodgepodge:2.7.157:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.100-GTNH:dev")
     runtimeOnlyNonPublishable("curse.maven:archaicfix-677782:6785842")

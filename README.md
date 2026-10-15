@@ -5,17 +5,13 @@
 
 ![logo](images/logo_small.png)
 
-[![hub](images/badges/github.png)](https://github.com/JackOfNoneTrades/VintageResourcify/releases)
-[![67](images/badges/67.png)](https://67.fentanylsolutions.org/mod/vpun)
-[![maven](images/badges/maven.png)](https://maven.fentanylsolutions.org/#/releases/org/fentanylsolutions/vintagepickupnotifier/VintagePickUpNotifier)
+[![hub](images/badges/github.png)](https://github.com/AngelicIndustries/VintagePickUpNotifier/releases)
+[![curse](images/badges/curse.png)](https://www.curseforge.com/minecraft/mc-mods/vintage-pick-up-notifier)
+[![modrinth](images/badges/modrinth.png)](https://modrinth.com/mod/vpun)
+[![67](images/badges/67.png)](https://67minecraft.com/mod/vpun)
+[![maven](images/badges/maven.png)](https://maven.angelic.industries/#/releases/industries/angelic/vintagepickupnotifier/VintagePickUpNotifier)
 ![forge](images/badges/forge.png)
 [![cord](images/badges/cord.png)](https://discord.gg/xAWCqGrguG)
-
-<!--
-
-[![curse](images/badges/curse.png)](https://www.curseforge.com/minecraft/mc-mods/vintage-resourcify)
-[![modrinth](images/badges/modrinth.png)](https://modrinth.com/mod/x)
-[![mcmodcn](images/badges/mcmodcn.png)]()-->
 
 ![screenshot1](images/screenshots/s1.png)
 
@@ -27,7 +23,8 @@
 
 ## Dependencies
 * [UniMixins](https://modrinth.com/mod/unimixins) [![curse](images/icons/curse.png)](https://www.curseforge.com/minecraft/mc-mods/unimixins)  [![modrinth](images/icons/modrinth.png)](https://modrinth.com/mod/unimixins/versions) [![git](images/icons/git.png)](https://github.com/LegacyModdingMC/UniMixins/releases)
-* [FentLib](https://www.curseforge.com/minecraft/mc-mods/fentlib) [![curse](images/icons/curse.png)](https://www.curseforge.com/minecraft/mc-mods/fentlib) [![modrinth](images/icons/modrinth.png)](https://modrinth.com/mod/fentlib) [![67](images/icons/67.png)](https://67.fentanylsolutions.org/mod/fentlib) [![git](images/icons/git.png)](https://github.com/JackOfNoneTrades/FentLib)
+
+UniMixins 0.1.23 or newer is required. AngelLib is not required.
 
 ## Compatibility
 
@@ -40,8 +37,13 @@ This mod is compatible with the following mods:
 ./gradlew build
 ```
 
+Development runs include AngelLib and other QoL/compatibility mods. These are not required by the published mod.
+
+Maven coordinates: `industries.angelic.vintagepickupnotifier:VintagePickUpNotifier:1.0.0` from [Angelic Maven](https://maven.angelic.industries/releases).
+
 ## Credits
 
+* Maintained by [Angelic Industries](https://angelic.industries/)
 * [Pick Up Notifier](https://github.com/Fuzss/pick-up-notifier) by Fuzss
 * [GT:NH buildscript](https://github.com/GTNewHorizons/ExampleMod1.7.10)
 
