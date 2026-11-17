@@ -16,7 +16,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
     name = "Vintage Pick Up Notifier",
     acceptedMinecraftVersions = "[1.7.10]",
     acceptableRemoteVersions = "*",
-    dependencies = "required-after:unimixins@[0.1.23,)",
+    dependencies = "required-after:unimixins@[0.1.23,);after:dashboard@[1.0.2,)",
     customProperties = { @Mod.CustomProperty(k = "license", v = "LGPLv3"),
         @Mod.CustomProperty(
             k = "issueTrackerUrl",

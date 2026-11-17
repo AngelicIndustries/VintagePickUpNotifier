@@ -1,6 +1,8 @@
 package industries.angelic.vintagepickupnotifier.client.handler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,15 +16,18 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import org.lwjgl.opengl.GL11;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import industries.angelic.vintagepickupnotifier.Config;
 import industries.angelic.vintagepickupnotifier.client.compat.AngelicaFontBatcher;
+import industries.angelic.vintagepickupnotifier.client.compat.DashboardPickups;
 import industries.angelic.vintagepickupnotifier.client.gui.entry.DisplayEntry;
 import industries.angelic.vintagepickupnotifier.client.gui.entry.ExperienceDisplayEntry;
 import industries.angelic.vintagepickupnotifier.client.gui.entry.ItemDisplayEntry;
@@ -34,9 +39,15 @@ public class DrawEntriesHandler {
 
     public static final DrawEntriesHandler INSTANCE = new DrawEntriesHandler();
     private static final int HANDLED_ENTITY_TICKS = 40;
+    /** Whether Dashboard is installed, to move the list in its HUD editor (DashboardPickups). */
+    public static final boolean DASHBOARD = Loader.isModLoaded("dashboard");
+    /** How far the entries' backgrounds reach past their sides. */
+    private static final int BACKGROUND_LEFT = 4;
+    private static final int BACKGROUND_RIGHT = 5;
 
     private final Map<Object, DisplayEntry<?>> collector = new LinkedHashMap<>();
     private final Map<Integer, Integer> handledEntities = new HashMap<>();
+    private List<DisplayEntry<?>> sample;
 
     private DrawEntriesHandler() {}
 
@@ -125,34 +136,76 @@ public class DrawEntriesHandler {
         if (this.collector.isEmpty()) {
             return;
         }
+        if (DASHBOARD && !DashboardPickups.begin(event.resolution)) {
+            return;
+        }
+        drawEntries(
+            this.collector.values(),
+            event.resolution.getScaledWidth(),
+            event.resolution.getScaledHeight(),
+            event.partialTicks,
+            false);
+        if (DASHBOARD) {
+            DashboardPickups.end();
+        }
+    }
 
+    /** What the list shows, or a sample while it is empty, standing still where it is drawn: for Dashboard's editor. */
+    public void drawPreview(int screenWidth, int screenHeight) {
+        drawEntries(getShownEntries(), screenWidth, screenHeight, 0.0F, true);
+    }
+
+    /**
+     * Where the list is drawn on the screen, as x, y, width and height, leaving out entries sliding away; while it is
+     * empty, where the sample would be.
+     */
+    public int[] getShownBox(int screenWidth, int screenHeight) {
+        Collection<DisplayEntry<?>> entries = getShownEntries();
+        float scale = Config.getDisplayScale();
+        int maxWidth = getMaxWidth(entries, Minecraft.getMinecraft().fontRenderer);
+        AnchorPoint.Positioner positioner = createPositioner(screenWidth, screenHeight, maxWidth, entries.size());
+        int left = positioner.getPosX((int) (Config.offsetX / scale)) - BACKGROUND_LEFT;
+        int top = positioner.getPosY((int) (Config.offsetY / scale));
+        return new int[] { (int) Math.floor(left * scale), (int) Math.floor(top * scale),
+            (int) Math.ceil((maxWidth + BACKGROUND_LEFT + BACKGROUND_RIGHT) * scale),
+            (int) Math.ceil(getTotalHeight(entries.size(), Config.entryMargin) * scale) };
+    }
+
+    private Collection<DisplayEntry<?>> getShownEntries() {
+        if (!this.collector.isEmpty()) {
+            return this.collector.values();
+        }
+        if (this.sample == null) {
+            this.sample = Arrays.<DisplayEntry<?>>asList(
+                new ItemDisplayEntry(new ItemStack(Items.diamond, 7), 7),
+                new ItemDisplayEntry(new ItemStack(Items.bread, 3), 3),
+                new ExperienceDisplayEntry(StatCollector.translateToLocal("entity.XPOrb.name"), 42, 0));
+        }
+        return this.sample;
+    }
+
+    /** Draws the entries; still ones neither fade nor slide, as in a preview. */
+    private static void drawEntries(Collection<DisplayEntry<?>> shown, int screenWidth, int screenHeight,
+        float partialTicks, boolean still) {
         Minecraft minecraft = Minecraft.getMinecraft();
         FontRenderer fontRenderer = minecraft.fontRenderer;
-        float partialTicks = event.partialTicks;
         float scale = Config.getDisplayScale();
-        int screenWidth = (int) (event.resolution.getScaledWidth() / scale);
-        int screenHeight = (int) (event.resolution.getScaledHeight() / scale);
 
-        List<DisplayEntry<?>> entries = new ArrayList<>(this.collector.values());
+        List<DisplayEntry<?>> entries = new ArrayList<>(shown);
         AnchorPoint anchorPoint = Config.position;
         if (!anchorPoint.isTop()) {
             Collections.reverse(entries);
         }
 
-        int maxWidth = 0;
-        for (DisplayEntry<?> entry : entries) {
-            maxWidth = Math.max(maxWidth, entry.getEntryWidth(fontRenderer));
-        }
-
-        int entryMargin = Config.entryMargin;
-        int entryHeight = getEntryHeight(entryMargin);
+        int maxWidth = getMaxWidth(entries, fontRenderer);
+        int entryHeight = getEntryHeight(Config.entryMargin);
         int entryTopOverhang = DisplayEntryRenderHelper.getEntryTopOverhang();
-        AnchorPoint.Positioner positioner = anchorPoint
-            .createPositioner(screenWidth, screenHeight, maxWidth, getTotalHeight(entries.size(), entryMargin));
+        AnchorPoint.Positioner positioner = createPositioner(screenWidth, screenHeight, maxWidth, entries.size());
         int offsetX = (int) (Config.offsetX / scale);
         int offsetY = (int) (Config.offsetY / scale);
+        int moveOffset = still ? 0 : getMoveOffset(entries, partialTicks);
         int posX = positioner.getPosX(offsetX);
-        int posY = positioner.getPosY(offsetY - getMoveOffset(entries, partialTicks)) + entryTopOverhang;
+        int posY = positioner.getPosY(offsetY - moveOffset) + entryTopOverhang;
         int elementY = posY;
 
         AngelicaFontBatcher.flush(fontRenderer);
@@ -163,12 +216,12 @@ public class DrawEntriesHandler {
             int elementX = posX + anchorPoint.createPositioner(maxWidth, -1, elementWidth, -1)
                 .getPosX(0);
 
-            if (Config.moveOut.moveHorizontally(anchorPoint)) {
+            if (!still && Config.moveOut.moveHorizontally(anchorPoint)) {
                 elementX += (int) (maxWidth * (1.0F - entry.getRelativeRemainingTicks(partialTicks))
                     * anchorPoint.getNormalX());
             }
 
-            float alpha = Config.fadeOut ? entry.getRelativeRemainingTicks(partialTicks) : 1.0F;
+            float alpha = !still && Config.fadeOut ? entry.getRelativeRemainingTicks(partialTicks) : 1.0F;
             entry.render(minecraft, fontRenderer, elementX, elementY, alpha, partialTicks);
             elementY += entryHeight;
         }
@@ -198,6 +251,25 @@ public class DrawEntriesHandler {
         int scaledHeight = (int) (resolution.getScaledHeight() / Config.getDisplayScale());
         int maxHeight = (int) (scaledHeight * Config.maxHeight);
         return Math.max(1, (maxHeight + Config.entryMargin) / getEntryHeight(Config.entryMargin) - 1);
+    }
+
+    private static int getMaxWidth(Collection<DisplayEntry<?>> entries, FontRenderer fontRenderer) {
+        int maxWidth = 0;
+        for (DisplayEntry<?> entry : entries) {
+            maxWidth = Math.max(maxWidth, entry.getEntryWidth(fontRenderer));
+        }
+        return maxWidth;
+    }
+
+    /** Places the list, drawn scaled by the display scale, on a screen this big. */
+    private static AnchorPoint.Positioner createPositioner(int screenWidth, int screenHeight, int maxWidth,
+        int entryCount) {
+        float scale = Config.getDisplayScale();
+        return Config.position.createPositioner(
+            (int) (screenWidth / scale),
+            (int) (screenHeight / scale),
+            maxWidth,
+            getTotalHeight(entryCount, Config.entryMargin));
     }
 
     private static int getEntryHeight(int entryMargin) {

@@ -8,6 +8,7 @@ import net.minecraftforge.common.MinecraftForge;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import industries.angelic.vintagepickupnotifier.client.command.CommandTestEntries;
+import industries.angelic.vintagepickupnotifier.client.compat.DashboardPickups;
 import industries.angelic.vintagepickupnotifier.client.handler.AddEntriesHandler;
 import industries.angelic.vintagepickupnotifier.client.handler.DrawEntriesHandler;
 
@@ -20,6 +21,9 @@ public class ClientProxy extends CommonProxy {
         FMLCommonHandler.instance()
             .bus()
             .register(DrawEntriesHandler.INSTANCE);
+        if (DrawEntriesHandler.DASHBOARD) {
+            DashboardPickups.register();
+        }
         if (VintagePickUpNotifier.isDebugMode()) {
             VintagePickUpNotifier.debug("Registering /vpun_test command");
             ClientCommandHandler.instance.registerCommand(new CommandTestEntries());
