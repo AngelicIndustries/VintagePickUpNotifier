@@ -45,7 +45,7 @@ dependencies {
     runtimeOnlyNonPublishable("com.falsepattern:forgelin-mc1.7.10:2.4.3-2.4.10")
 
     // Compile + runtime
-    devOnlyNonPublishable(rfg.deobf("curse.maven:catalogue-vintage-1465746:7695645")) // 1.0.2-1.7.10
+    devOnlyNonPublishable(rfg.deobf("curse.maven:catalogue-vintage-1465746:8384975")) // 1.0.8-1.7.10
     devOnlyNonPublishable("com.github.GTNewHorizons:Angelica:2.2.46:dev")
     devOnlyNonPublishable("com.github.GTNewHorizons:ModularUI2:2.4.0-1.7.10:dev")
 
